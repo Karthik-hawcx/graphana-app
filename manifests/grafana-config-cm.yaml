@@ -57,7 +57,11 @@ data:
     default_home_dashboard_path = /var/lib/grafana/dashboards/system-health.json
 kind: ConfigMap
 metadata:
+  annotations:
+    meta.helm.sh/release-name: hawcx-monitoring
+    meta.helm.sh/release-namespace: monitoring
   labels:
     app: grafana
+    app.kubernetes.io/managed-by: Helm
   name: grafana-config
   namespace: monitoring
