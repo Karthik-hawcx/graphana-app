@@ -18,6 +18,11 @@ prometheus:
       metricsPath: /metrics
       scrapeInterval: 15s
       targets: ["hx-tenant-config-service.hx-tenant-config.svc.cluster.local:8000"]
+    # Kong Gateway metrics (requires prometheus plugin enabled on Kong dataplane)
+    - jobName: kong-gateway
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      targets: ["dataplane-ingress-kong-dataplane-pmtck.kong.svc.cluster.local:8100"]
 
 loki:
   enabled: true
