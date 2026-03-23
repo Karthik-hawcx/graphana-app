@@ -1,0 +1,155 @@
+{{- if .Values.prometheus.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-pod-reader
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-pod-reader
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-pod-reader
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: {{ include "hawcx-monitoring.namespace" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{ .Values.prometheus.scrapeInterval | default "15s" }}
+      evaluation_interval: {{ .Values.prometheus.evaluationInterval | default "15s" }}
+
+    scrape_configs:
+      {{- if .Values.prometheus.scrapeTargets }}
+      {{- range .Values.prometheus.scrapeTargets }}
+      - job_name: {{ .jobName }}
+        metrics_path: {{ .metricsPath | default "/metrics" }}
+        scrape_interval: {{ .scrapeInterval | default "15s" }}
+        {{- if .kubernetesSD }}
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: {{ .kubernetesSD.namespaces | toJson }}
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: {{ .kubernetesSD.appLabel }}
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - replacement: {{ .jobName }}
+            target_label: service
+        {{- else }}
+        static_configs:
+          - targets: {{ .targets | toJson }}
+            labels:
+              service: {{ .jobName }}
+              namespace: {{ $.Values.namespace | default "monitoring" }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.prometheus.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      containers:
+        - name: prometheus
+          image: {{ .Values.prometheus.image }}
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time={{ .Values.prometheus.retentionTime | default "7d" }}"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 9090
+          resources:
+            {{- toYaml .Values.prometheus.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+            - name: data
+              mountPath: /prometheus
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: prometheus
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+  selector:
+    app: prometheus
+{{- end }}

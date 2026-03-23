@@ -1,0 +1,33 @@
+# Alabasta EKS cluster overrides (us-west-2)
+namespace: monitoring
+
+prometheus:
+  enabled: true
+  scrapeTargets:
+    - jobName: hx-auth
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      kubernetesSD:
+        namespaces: ["hx-auth"]
+        appLabel: hx-auth
+    - jobName: hawcx-core-oauth
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      targets: ["hawcx-core-oauth-service.hawcx-core-oauth.svc.cluster.local:8080"]
+    - jobName: hx-tenant-config
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      targets: ["hx-tenant-config-service.hx-tenant-config.svc.cluster.local:8000"]
+
+loki:
+  enabled: true
+  # IMPORTANT: Use emptyDir, NOT EFS — EFS caused write latency issues
+  storage: emptyDir
+  storageSizeLimit: 10Gi
+  objectStore: s3
+  s3Url: "s3://us-west-2/hawcx-alabasta-loki-logs"
+  retentionPeriod: "2160h"  # 90 days — S3 lifecycle deletes at 95 days as backup
+  serviceAccountRoleArn: "arn:aws:iam::975050144940:role/hawcx-alabasta-loki-s3-role"
+
+grafana:
+  enabled: true

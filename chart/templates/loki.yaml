@@ -1,0 +1,249 @@
+{{- if .Values.loki.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-config
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+data:
+  loki.yaml: |
+    auth_enabled: false
+
+    server:
+      http_listen_port: 3100
+
+    common:
+      path_prefix: /loki
+      replication_factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+
+    schema_config:
+      configs:
+        - from: 2024-01-01
+          store: tsdb
+          object_store: {{ .Values.loki.objectStore | default "filesystem" }}
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+    {{- if eq (.Values.loki.objectStore | default "filesystem") "filesystem" }}
+    storage_config:
+      filesystem:
+        directory: /loki/chunks
+      tsdb_shipper:
+        active_index_directory: /loki/index
+        cache_location: /loki/index_cache
+    {{- else }}
+    storage_config:
+      tsdb_shipper:
+        active_index_directory: /loki/index
+        cache_location: /loki/index_cache
+      aws:
+        s3: {{ .Values.loki.s3Url | default "s3://us-east-2/hawcx-dev-loki-logs" }}
+        s3forcepathstyle: true
+        {{- if .Values.loki.s3Endpoint }}
+        endpoint: {{ .Values.loki.s3Endpoint }}
+        insecure: true
+        {{- end }}
+        {{- if .Values.loki.s3AccessKeyId }}
+        access_key_id: {{ .Values.loki.s3AccessKeyId }}
+        secret_access_key: {{ .Values.loki.s3SecretAccessKey }}
+        {{- end }}
+    {{- end }}
+
+    chunk_store_config:
+      chunk_cache_config:
+        embedded_cache:
+          enabled: true
+          max_size_mb: 256
+
+    limits_config:
+      retention_period: {{ .Values.loki.retentionPeriod | default "2160h" }}
+      ingestion_rate_mb: {{ .Values.loki.ingestionRateMb | default 10 }}
+      ingestion_burst_size_mb: {{ .Values.loki.ingestionBurstSizeMb | default 20 }}
+      max_streams_per_user: {{ .Values.loki.maxStreamsPerUser | default 10000 }}
+
+    compactor:
+      working_directory: /loki/compactor
+      compaction_interval: 10m
+      retention_enabled: true
+      retention_delete_delay: 2h
+      {{- if eq (.Values.loki.objectStore | default "filesystem") "s3" }}
+      delete_request_store: s3
+      {{- else }}
+      delete_request_store: filesystem
+      {{- end }}
+
+    query_range:
+      align_queries_with_step: true
+      cache_results: true
+      results_cache:
+        cache:
+          embedded_cache:
+            enabled: true
+            max_size_mb: 128
+{{- if .Values.loki.serviceAccountRoleArn }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: loki
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ .Values.loki.serviceAccountRoleArn }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.loki.replicas | default 1 }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      {{- if .Values.loki.serviceAccountRoleArn }}
+      serviceAccountName: loki
+      {{- end }}
+      securityContext:
+        fsGroup: 10001
+      initContainers:
+        - name: init-loki-dirs
+          image: {{ .Values.loki.initImage | default "busybox:1.36" }}
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /loki/chunks /loki/index /loki/index_cache /loki/compactor
+              chown -R 10001:10001 /loki
+          volumeMounts:
+            - name: data
+              mountPath: /loki
+      containers:
+        - name: loki
+          image: {{ .Values.loki.image }}
+          args:
+            - "-config.file=/etc/loki/loki.yaml"
+            - "-target=all"
+          ports:
+            - containerPort: 3100
+          resources:
+            {{- toYaml .Values.loki.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/loki
+            - name: data
+              mountPath: /loki
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: loki-config
+        - name: data
+          {{- if or (eq .Values.loki.storage "pvc") (eq .Values.loki.storage "efs") }}
+          persistentVolumeClaim:
+            claimName: loki-data
+          {{- else }}
+          emptyDir:
+            sizeLimit: {{ .Values.loki.storageSizeLimit | default "10Gi" }}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-service
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3100
+      targetPort: 3100
+      protocol: TCP
+  selector:
+    app: loki
+{{- if eq .Values.loki.storage "pvc" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.loki.storageSize | default "10Gi" }}
+{{- end }}
+{{- if eq .Values.loki.storage "efs" }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: loki-efs-pv
+  labels:
+    app: loki
+spec:
+  capacity:
+    storage: {{ .Values.loki.storageSize | default "50Gi" }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ .Values.loki.efsFileSystemId }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: {{ include "hawcx-monitoring.namespace" . }}
+  labels:
+    app: loki
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: loki-efs-pv
+  resources:
+    requests:
+      storage: {{ .Values.loki.storageSize | default "50Gi" }}
+{{- end }}
+{{- end }}

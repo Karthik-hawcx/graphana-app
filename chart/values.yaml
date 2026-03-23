@@ -1,0 +1,81 @@
+namespace: monitoring
+
+prometheus:
+  enabled: true
+  image: prom/prometheus:v2.51.0
+  replicas: 1
+  scrapeInterval: 15s
+  evaluationInterval: 15s
+  retentionTime: 7d
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  # Default scrape targets — override in values-<env>.yaml for environment-specific DNS
+  scrapeTargets:
+    - jobName: hx-auth
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      kubernetesSD:
+        namespaces: ["hx-auth"]
+        appLabel: hx-auth
+    - jobName: hawcx-core-oauth
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      targets: ["hawcx-core-oauth-service.hawcx-core-oauth.svc.cluster.local:8080"]
+    - jobName: hx-tenant-config
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      targets: ["hx-tenant-config-service.hx-tenant-config.svc.cluster.local:8000"]
+
+grafana:
+  enabled: true
+  image: grafana/grafana:10.4.0
+  replicas: 1
+  adminUser: admin
+  adminPassword: hawcx
+  allowEmbedding: true
+  anonymousAuth: true
+  anonymousOrgRole: Editor
+  viewersCanEdit: true
+  rootUrl: "http://localhost:13000/"
+  defaultHomeDashboard: /var/lib/grafana/dashboards/system-health.json
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+loki:
+  enabled: true
+  image: grafana/loki:3.0.0
+  initImage: busybox:1.36
+  replicas: 1
+  # Storage type: "emptyDir", "pvc", or "efs"
+  storage: emptyDir
+  storageSizeLimit: 10Gi
+  storageSize: 10Gi
+  # Object store: "filesystem" or "s3"
+  objectStore: filesystem
+  s3Url: ""
+  s3Endpoint: ""
+  s3AccessKeyId: ""
+  s3SecretAccessKey: ""
+  serviceAccountRoleArn: ""
+  efsFileSystemId: ""
+  retentionPeriod: "2160h"
+  ingestionRateMb: 10
+  ingestionBurstSizeMb: 20
+  maxStreamsPerUser: 10000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
