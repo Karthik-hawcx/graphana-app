@@ -32,6 +32,11 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
+      - name: Apply raw manifests (ConfigMaps with Grafana template vars)
+        run: |
+          echo "Applying ConfigMaps..."
+          kubectl apply -f manifests/ -n monitoring
+
       - name: Deploy to EKS
         run: |
           helm upgrade --install hawcx-monitoring ./chart \

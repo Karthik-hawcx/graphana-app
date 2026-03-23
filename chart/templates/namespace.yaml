@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ include "hawcx-monitoring.namespace" . }}
-  labels:
-    {{- include "hawcx-monitoring.labels" . | nindent 4 }}
