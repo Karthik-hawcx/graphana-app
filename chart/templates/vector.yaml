@@ -29,6 +29,27 @@ data:
           .loki_labels.auth_type = string(.auth_type) ?? "unknown"
           .loki_labels.dpop_present = string(.dpop_present) ?? "unknown"
           .loki_labels.tenant_id = string(.tenant_id) ?? "unknown"
+          # Auth rejection reason from openid-connect plugin (401s)
+          # Extract just the error code, not the full header (Loki labels can't have special chars)
+          www_auth, err = string(.response.headers."www-authenticate")
+          if err == null && www_auth != "" {
+            # Parse: Bearer error="invalid_token" → "invalid_token"
+            parsed, parse_err = parse_regex(www_auth, r'error="(?P<error>[^"]+)"')
+            if parse_err == null {
+              .loki_labels.auth_error = parsed.error
+            } else {
+              .loki_labels.auth_error = "auth_required"
+            }
+          } else {
+            .loki_labels.auth_error = "none"
+          }
+          # Rejection reason from post-function (403s)
+          reject, err = string(.response.headers."x-kong-reject-reason")
+          if err == null && reject != "" {
+            .loki_labels.reject_reason = reject
+          } else {
+            .loki_labels.reject_reason = "none"
+          }
 
     sinks:
       loki:
@@ -43,6 +64,8 @@ data:
           auth_type: "{{ `{{ loki_labels.auth_type }}` }}"
           dpop_present: "{{ `{{ loki_labels.dpop_present }}` }}"
           tenant_id: "{{ `{{ loki_labels.tenant_id }}` }}"
+          auth_error: "{{ `{{ loki_labels.auth_error }}` }}"
+          reject_reason: "{{ `{{ loki_labels.reject_reason }}` }}"
         encoding:
           codec: json
         out_of_order_action: accept
