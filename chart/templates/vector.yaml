@@ -21,15 +21,14 @@ data:
         type: remap
         inputs: ["kong_http_log"]
         source: |
-          # Extract labels for Loki from Kong's log payload
           .loki_labels = {}
           .loki_labels.job = "kong"
-          .loki_labels.service = get(.service.name, default: "unknown") ?? "unknown"
-          .loki_labels.route = get(.route.name, default: "unknown") ?? "unknown"
-          .loki_labels.status = to_string(get(.response.status, default: 0) ?? 0)
-          .loki_labels.auth_type = get(.auth_type, default: "unknown") ?? "unknown"
-          .loki_labels.dpop_present = get(.dpop_present, default: "unknown") ?? "unknown"
-          .loki_labels.tenant_id = get(.tenant_id, default: "unknown") ?? "unknown"
+          .loki_labels.service = string(.service.name) ?? "unknown"
+          .loki_labels.route = string(.route.name) ?? "unknown"
+          .loki_labels.status = string(.response.status) ?? "0"
+          .loki_labels.auth_type = string(.auth_type) ?? "unknown"
+          .loki_labels.dpop_present = string(.dpop_present) ?? "unknown"
+          .loki_labels.tenant_id = string(.tenant_id) ?? "unknown"
 
     sinks:
       loki:
