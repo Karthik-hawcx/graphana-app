@@ -18,11 +18,14 @@ prometheus:
       metricsPath: /metrics
       scrapeInterval: 15s
       targets: ["hx-tenant-config-service.hx-tenant-config.svc.cluster.local:8000"]
-    # Kong Gateway metrics (requires prometheus plugin enabled on Kong dataplane)
+    # Kong Gateway metrics — use pod SD since the service doesn't expose port 8100
     - jobName: kong-gateway
       metricsPath: /metrics
       scrapeInterval: 15s
-      targets: ["dataplane-ingress-kong-dataplane-pmtck.kong.svc.cluster.local:8100"]
+      scrapePort: "8100"
+      kubernetesSD:
+        namespaces: ["kong"]
+        appLabel: kong-dataplane
 
 loki:
   enabled: true

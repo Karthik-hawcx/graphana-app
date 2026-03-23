@@ -65,6 +65,15 @@ data:
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: {{ .kubernetesSD.appLabel }}
             action: keep
+          {{- if .scrapePort }}
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: {{ .scrapePort }}
+            action: keep
+          - source_labels: [__address__]
+            regex: (.+):(\d+)
+            replacement: ${1}:{{ .scrapePort }}
+            target_label: __address__
+          {{- end }}
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
           - source_labels: [__meta_kubernetes_namespace]
