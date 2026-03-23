@@ -36,3 +36,14 @@ loki:
 
 grafana:
   enabled: true
+
+vector:
+  enabled: true
+  image: "timberio/vector:0.41.1-alpine"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"

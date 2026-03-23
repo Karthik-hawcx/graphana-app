@@ -1,0 +1,105 @@
+{{- if .Values.vector.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kong-log-forwarder
+data:
+  vector.yaml: |
+    sources:
+      kong_http_log:
+        type: http_server
+        address: "0.0.0.0:8080"
+        path: "/logs"
+        encoding: json
+
+    transforms:
+      kong_to_loki:
+        type: remap
+        inputs: ["kong_http_log"]
+        source: |
+          # Extract labels for Loki from Kong's log payload
+          .loki_labels = {}
+          .loki_labels.job = "kong"
+          .loki_labels.service = get(.service.name, default: "unknown") ?? "unknown"
+          .loki_labels.route = get(.route.name, default: "unknown") ?? "unknown"
+          .loki_labels.status = to_string(get(.response.status, default: 0) ?? 0)
+          .loki_labels.auth_type = get(.auth_type, default: "unknown") ?? "unknown"
+          .loki_labels.dpop_present = get(.dpop_present, default: "unknown") ?? "unknown"
+          .loki_labels.tenant_id = get(.tenant_id, default: "unknown") ?? "unknown"
+
+    sinks:
+      loki:
+        type: loki
+        inputs: ["kong_to_loki"]
+        endpoint: "http://loki-service.{{ .Values.namespace }}.svc.cluster.local:3100"
+        labels:
+          job: "{{ `{{ loki_labels.job }}` }}"
+          service: "{{ `{{ loki_labels.service }}` }}"
+          route: "{{ `{{ loki_labels.route }}` }}"
+          status: "{{ `{{ loki_labels.status }}` }}"
+          auth_type: "{{ `{{ loki_labels.auth_type }}` }}"
+          dpop_present: "{{ `{{ loki_labels.dpop_present }}` }}"
+          tenant_id: "{{ `{{ loki_labels.tenant_id }}` }}"
+        encoding:
+          codec: json
+        out_of_order_action: accept
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-log-forwarder
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kong-log-forwarder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong-log-forwarder
+  template:
+    metadata:
+      labels:
+        app: kong-log-forwarder
+    spec:
+      containers:
+        - name: vector
+          image: {{ .Values.vector.image | default "timberio/vector:0.41.1-alpine" }}
+          args: ["--config", "/etc/vector/vector.yaml"]
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vector
+          resources:
+            requests:
+              memory: {{ .Values.vector.resources.requests.memory | default "64Mi" }}
+              cpu: {{ .Values.vector.resources.requests.cpu | default "50m" }}
+            limits:
+              memory: {{ .Values.vector.resources.limits.memory | default "256Mi" }}
+              cpu: {{ .Values.vector.resources.limits.cpu | default "200m" }}
+      volumes:
+        - name: config
+          configMap:
+            name: vector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-log-forwarder
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kong-log-forwarder
+spec:
+  selector:
+    app: kong-log-forwarder
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  type: ClusterIP
+{{- end }}
