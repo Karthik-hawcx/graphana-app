@@ -705,7 +705,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (auth_type) (count_over_time({job=\"kong\"} | auth_type != \"\" [$__range]))",
+              "expr": "sum by (auth_type) (count_over_time({job=\"kong\", route!=\"unknown\"} | auth_type != \"\" [$__range]))",
               "legendFormat": "{{auth_type}}",
               "refId": "A"
             }
@@ -751,7 +751,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (auth_type) (count_over_time({job=\"kong\"} | auth_type != \"\" [$__interval]))",
+              "expr": "sum by (auth_type) (count_over_time({job=\"kong\", route!=\"unknown\"} | auth_type != \"\" [$__interval]))",
               "legendFormat": "{{auth_type}}",
               "refId": "A"
             }
@@ -985,7 +985,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (route_name, dpop_present) (count_over_time({job=\"kong\"} | route_name != \"\" [$__interval]))",
+              "expr": "sum by (route_name, dpop_present) (count_over_time({job=\"kong\", route!=\"unknown\"} | route_name != \"\" [$__interval]))",
               "legendFormat": "{{route_name}} dpop={{dpop_present}}",
               "refId": "A"
             }
@@ -1031,7 +1031,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (auth_type) (count_over_time({job=\"kong\"} | response_status >= 400 [$__interval]))",
+              "expr": "sum by (auth_type) (count_over_time({job=\"kong\", route!=\"unknown\"} | response_status >= 400 [$__interval]))",
               "legendFormat": "{{auth_type}} (4xx/5xx)",
               "refId": "A"
             }
@@ -1089,7 +1089,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (tenant_id) (count_over_time({job=\"kong\"} | tenant_id != \"\" | tenant_id != \"unknown\" [$__interval]))",
+              "expr": "sum by (tenant_id) (count_over_time({job=\"kong\", route!=\"unknown\"} | tenant_id != \"\" | tenant_id != \"unknown\" [$__interval]))",
               "legendFormat": "{{tenant_id}}",
               "refId": "A"
             }
@@ -1135,7 +1135,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (tenant_id) (count_over_time({job=\"kong\"} | tenant_id != \"\" | tenant_id != \"unknown\" | response_status >= 400 [$__interval]))",
+              "expr": "sum by (tenant_id) (count_over_time({job=\"kong\", route!=\"unknown\"} | tenant_id != \"\" | tenant_id != \"unknown\" | response_status >= 400 [$__interval]))",
               "legendFormat": "{{tenant_id}} (errors)",
               "refId": "A"
             }
