@@ -23,8 +23,16 @@ data:
               "legendFormat": "started {{flow_type}}"
             },
             {
-              "expr": "sum(hx_auth_flow_completed_total{flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}) by (flow_type)",
+              "expr": "sum(hx_auth_flow_completed_total{outcome=\"completed\", flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}) by (flow_type)",
               "legendFormat": "completed {{flow_type}}"
+            },
+            {
+              "expr": "sum(hx_auth_flow_completed_total{outcome=\"failed\", flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}) by (flow_type)",
+              "legendFormat": "failed {{flow_type}}"
+            },
+            {
+              "expr": "sum(hx_auth_flow_completed_total{outcome=\"blocked\", flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}) by (flow_type)",
+              "legendFormat": "blocked {{flow_type}}"
             }
           ],
           "title": "Flow Funnel",
@@ -119,7 +127,7 @@ data:
           "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum", "lastNotNull"] } },
           "targets": [
             {
-              "expr": "sum(rate(hx_auth_flow_failures_total{flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}[5m])) by (error_code)",
+              "expr": "sum(increase(hx_auth_flow_failures_total{flow_type=~\"$flow_type\", tenant_id=~\"$tenant_id\"}[$__rate_interval])) by (error_code)",
               "legendFormat": "{{error_code}}"
             }
           ],
@@ -139,7 +147,7 @@ data:
           "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum", "lastNotNull"] } },
           "targets": [
             {
-              "expr": "sum(rate(hx_auth_method_verification_failures_total{tenant_id=~\"$tenant_id\"}[5m])) by (method, error_code)",
+              "expr": "sum(increase(hx_auth_method_verification_failures_total{tenant_id=~\"$tenant_id\"}[$__rate_interval])) by (method, error_code)",
               "legendFormat": "{{method}} — {{error_code}}"
             }
           ],
@@ -183,7 +191,7 @@ data:
           "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum"] } },
           "targets": [
             {
-              "expr": "sum(rate(hx_auth_risk_blocks_total{tenant_id=~\"$tenant_id\"}[5m])) by (reason)",
+              "expr": "sum(increase(hx_auth_risk_blocks_total{tenant_id=~\"$tenant_id\"}[$__rate_interval])) by (reason)",
               "legendFormat": "{{reason}}"
             }
           ],
@@ -226,7 +234,7 @@ data:
           "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum"] } },
           "targets": [
             {
-              "expr": "sum(rate(hx_auth_session_errors_total{tenant_id=~\"$tenant_id\"}[5m])) by (error_type)",
+              "expr": "sum(increase(hx_auth_session_errors_total{tenant_id=~\"$tenant_id\"}[$__rate_interval])) by (error_type)",
               "legendFormat": "{{error_type}}"
             }
           ],
