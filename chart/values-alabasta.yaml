@@ -39,6 +39,12 @@ loki:
 
 grafana:
   enabled: true
+  rootUrl: "https://grafana-alabasta.hawcx.com/"
+  ingress:
+    enabled: true
+    host: "grafana-alabasta.hawcx.com"
+    certificateArn: "arn:aws:acm:us-west-2:975050144940:certificate/483d993b-a8c5-4c1b-9358-c9963db1c8eb"
+    loadBalancerName: "grafana-alabasta-alb"
 
 vector:
   enabled: true

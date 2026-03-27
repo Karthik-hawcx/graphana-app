@@ -43,6 +43,11 @@ grafana:
   viewersCanEdit: true
   rootUrl: "http://localhost:13000/"
   defaultHomeDashboard: /var/lib/grafana/dashboards/system-health.json
+  ingress:
+    enabled: false
+    host: ""
+    certificateArn: ""
+    loadBalancerName: "grafana-alb"
   resources:
     requests:
       cpu: 100m
