@@ -1354,6 +1354,860 @@ data:
       "uid": "hx-auth-log-explorer",
       "version": 1
     }
+  tenant-config-errors.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Critical Alerts",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+          "id": 1,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "none", "textMode": "auto", "colorMode": "background" },
+          "title": "State Corruption Events",
+          "description": "CRITICAL: provisioning error handler itself failed — state left inconsistent",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.state_update_failed` [$__range])",
+              "legendFormat": "State Corruption",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 5 }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+          "id": 2,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "none", "textMode": "auto", "colorMode": "background" },
+          "title": "Provisioning Failures",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.failed` [$__range])",
+              "legendFormat": "Failures",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 5 }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+          "id": 3,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "none", "textMode": "auto", "colorMode": "background" },
+          "title": "Sync Failures",
+          "description": "Provisioning succeeded but CMDB sync failed — tenant config not updated",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.sync_failed` [$__range])",
+              "legendFormat": "Sync Failures",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 3 }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+          "id": 4,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "none", "textMode": "auto", "colorMode": "background" },
+          "title": "Startup Failures",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |~ `startup\\.(metrics_streaming|provisioning_init|analytics_consumer)_failed` [$__range])",
+              "legendFormat": "Startup Failures",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+          "id": 101,
+          "title": "Provisioning Errors Over Time",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+          "id": 10,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "All Provisioning Errors",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (level) (count_over_time({app=\"hx-tenant-config\"} |~ `provisioning\\.(failed|step\\.failed|sync_failed|state_update_failed)` [$__interval]))",
+              "legendFormat": "{{level}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+          "id": 102,
+          "title": "Provisioning Step Failures",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+          "id": 20,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Step Failures by Step",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.step.failed` | json | line_format `{{.step}}` [$__interval])",
+              "legendFormat": "{{step}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+          "id": 21,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Deprovisioning Step Failures",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `deprovisioning.step.failed` | json | line_format `{{.step}}` [$__interval])",
+              "legendFormat": "{{step}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+          "id": 103,
+          "title": "Credential Resolution Errors",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "id": 30,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Credential Failures by Type",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `tenant.credential_resolution_failed` | json | line_format `{{.credential_type}}` [$__interval])",
+              "legendFormat": "{{credential_type}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "id": 31,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Migration Failures",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `migration.failed` [$__interval])",
+              "legendFormat": "Migration Failures",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+          "id": 104,
+          "title": "Infrastructure Errors",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 33 },
+          "id": 40,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "RDS Errors",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |~ `rds\\.(database\\.drop_failed|schema\\.drop_failed|credentials\\.fetch_failed)` [$__interval])",
+              "legendFormat": "RDS Errors",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 33 },
+          "id": 41,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "ElastiCache Errors",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |~ `elasticache\\.(create_failed|delete_blocked)` [$__interval])",
+              "legendFormat": "ElastiCache Errors",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 33 },
+          "id": 42,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "KMS Errors",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `kms.alias_lookup_failed` [$__interval])",
+              "legendFormat": "KMS Errors",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+          "id": 105,
+          "title": "Error Log Stream",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 12, "w": 24, "x": 0, "y": 42 },
+          "id": 50,
+          "options": {
+            "showTime": true,
+            "showLabels": false,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "prettifyLogMessage": true,
+            "enableLogDetails": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none"
+          },
+          "title": "All Error Logs (Live)",
+          "type": "logs",
+          "targets": [
+            {
+              "expr": "{app=\"hx-tenant-config\"} |~ `(provisioning\\.|deprovisioning\\.|migration\\.|tenant\\.credential|rds\\.|elasticache\\.|kms\\.|startup\\.).*failed`",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "reqps"
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byRegexp", "options": "5.." },
+                "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+              },
+              {
+                "matcher": { "id": "byRegexp", "options": "4.." },
+                "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+              }
+            ]
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 54 },
+          "id": 60,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "HTTP Error Responses (4xx / 5xx)",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{job=~\"hx-tenant-config\", status_code=~\"[45].*\"}[1m])) by (status_code)",
+              "legendFormat": "{{status_code}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["hawcx", "tenant-config", "errors"],
+      "templating": { "list": [] },
+      "time": { "from": "now-6h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Tenant Config — Errors",
+      "uid": "tc-errors",
+      "version": 1
+    }
+  tenant-config-operations.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Provisioning Activity",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "blue", "value": null }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+          "id": 1,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "area", "textMode": "auto", "colorMode": "background" },
+          "title": "Provisioning Started",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.started` [$__range])",
+              "legendFormat": "Started",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+          "id": 2,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "area", "textMode": "auto", "colorMode": "background" },
+          "title": "Provisioning Completed",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.completed` [$__range])",
+              "legendFormat": "Completed",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "purple", "value": null }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+          "id": 3,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "area", "textMode": "auto", "colorMode": "background" },
+          "title": "Deletions Completed",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.delete.completed` [$__range])",
+              "legendFormat": "Deleted",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }] },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+          "id": 4,
+          "options": { "reduceOptions": { "calcs": ["sum"] }, "graphMode": "area", "textMode": "auto", "colorMode": "background" },
+          "title": "Syncs Completed",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.sync.completed` [$__range])",
+              "legendFormat": "Syncs",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byRegexp", "options": ".*completed.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+              },
+              {
+                "matcher": { "id": "byRegexp", "options": ".*started.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }]
+              },
+              {
+                "matcher": { "id": "byRegexp", "options": ".*failed.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+              }
+            ]
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
+          "id": 10,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Provisioning Events Over Time",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.started` [$__interval])",
+              "legendFormat": "started",
+              "refId": "A"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.completed` [$__interval])",
+              "legendFormat": "completed",
+              "refId": "B"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.failed` [$__interval])",
+              "legendFormat": "failed",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+          "id": 101,
+          "title": "Provisioning Steps",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+          "id": 20,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Steps Started by Type",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.step.started` | json | line_format `{{.step}}` [$__interval])",
+              "legendFormat": "{{step}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+          "id": 21,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Steps Completed by Type",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.step.completed` | json | line_format `{{.step}}` [$__interval])",
+              "legendFormat": "{{step}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+          "id": 102,
+          "title": "Org Resource Provisioning",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byRegexp", "options": ".*created.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+              },
+              {
+                "matcher": { "id": "byRegexp", "options": ".*creating.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }]
+              }
+            ]
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
+          "id": 30,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Org Resource Events (DB + Cache)",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.org.db_creating` [$__interval])",
+              "legendFormat": "db_creating",
+              "refId": "A"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.org.db_created` [$__interval])",
+              "legendFormat": "db_created",
+              "refId": "B"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.org.cache_creating` [$__interval])",
+              "legendFormat": "cache_creating",
+              "refId": "C"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `provisioning.org.cache_created` [$__interval])",
+              "legendFormat": "cache_created",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+          "id": 103,
+          "title": "Deprovisioning",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "bars", "fillOpacity": 80, "lineWidth": 1, "stacking": { "mode": "normal" } },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byRegexp", "options": ".*completed.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+              },
+              {
+                "matcher": { "id": "byRegexp", "options": ".*failed.*" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+              }
+            ]
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+          "id": 35,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Deprovisioning Events",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `deprovisioning.completed` [$__interval])",
+              "legendFormat": "completed",
+              "refId": "A"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `deprovisioning.failed` [$__interval])",
+              "legendFormat": "failed",
+              "refId": "B"
+            },
+            {
+              "expr": "count_over_time({app=\"hx-tenant-config\"} |= `deprovisioning.step.started` [$__interval])",
+              "legendFormat": "steps_started",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
+          "id": 104,
+          "title": "HTTP Overview (Prometheus)",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "showPoints": "never", "stacking": { "mode": "none" } },
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
+          "id": 40,
+          "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Request Rate",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{job=\"hx-tenant-config\"}[1m])) by (method)",
+              "legendFormat": "{{method}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "showPoints": "never", "stacking": { "mode": "none" } },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 41 },
+          "id": 41,
+          "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Request Latency (p50 / p95 / p99)",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"hx-tenant-config\"}[5m])) by (le))",
+              "legendFormat": "p50",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"hx-tenant-config\"}[5m])) by (le))",
+              "legendFormat": "p95",
+              "refId": "B"
+            },
+            {
+              "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"hx-tenant-config\"}[5m])) by (le))",
+              "legendFormat": "p99",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 },
+          "id": 105,
+          "title": "Analytics Consumer",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "showPoints": "never" },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 50 },
+          "id": 50,
+          "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Consumer Heartbeat — Events Processed",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "{app=\"hx-tenant-config\"} |= `Consumer heartbeat` | json | line_format `{{.events_processed}}`",
+              "legendFormat": "events_processed",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "showPoints": "never" },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
+          "id": 51,
+          "options": { "legend": { "calcs": ["last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Connected Tenants",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "{app=\"hx-tenant-config\"} |= `Consumer heartbeat` | json | line_format `{{.tenant_count}}`",
+              "legendFormat": "tenant_count",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 },
+          "id": 106,
+          "title": "Recent Activity Log",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 59 },
+          "id": 60,
+          "options": {
+            "showTime": true,
+            "showLabels": false,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "prettifyLogMessage": true,
+            "enableLogDetails": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none"
+          },
+          "title": "Provisioning Activity Log",
+          "type": "logs",
+          "targets": [
+            {
+              "expr": "{app=\"hx-tenant-config\"} |~ `provisioning\\.|deprovisioning\\.` != `step.started` != `step.completed`",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["hawcx", "tenant-config", "operations"],
+      "templating": { "list": [] },
+      "time": { "from": "now-6h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Tenant Config — Operations",
+      "uid": "tc-operations",
+      "version": 1
+    }
 kind: ConfigMap
 metadata:
   labels:
