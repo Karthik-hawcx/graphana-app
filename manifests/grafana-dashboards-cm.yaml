@@ -1380,6 +1380,176 @@ data:
       "uid": "session-debug",
       "version": 2
     }
+  hx-auth-log-explorer.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "panels": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+          "id": 10,
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": { "steps": [{ "color": "blue", "value": null }] }
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum(count_over_time({app=\"hx-auth\"} |= `$keyword` [$__range]))",
+              "legendFormat": ""
+            }
+          ],
+          "title": "Matching Log Lines",
+          "description": "Total log lines matching your keyword in the selected time range",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 5, "w": 24, "x": 0, "y": 4 },
+          "id": 11,
+          "options": {
+            "showTime": false,
+            "sortOrder": "Descending",
+            "enableLogDetails": false,
+            "dedupStrategy": "none",
+            "wrapLogMessage": false
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 70, "stacking": { "mode": "normal" } }
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum by (level) (count_over_time({app=\"hx-auth\"} |= `$keyword` | json [$__interval]))",
+              "legendFormat": "{{level}}"
+            }
+          ],
+          "title": "Match Volume Over Time",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+          "id": 100,
+          "title": "Keyword Search Results",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "gridPos": { "h": 20, "w": 24, "x": 0, "y": 10 },
+          "id": 1,
+          "options": { "showTime": true, "sortOrder": "Descending", "enableLogDetails": true, "dedupStrategy": "none", "wrapLogMessage": true, "prettifyLogMessage": true },
+          "targets": [
+            {
+              "expr": "{app=\"hx-auth\"} |= `$keyword` | json",
+              "refId": "A"
+            }
+          ],
+          "title": "Matching Logs",
+          "description": "All hx-auth log lines containing your keyword. Click any line to expand full JSON details.",
+          "type": "logs"
+        },
+        {
+          "collapsed": true,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+          "id": 101,
+          "title": "Context: All Logs Around Matches",
+          "type": "row",
+          "panels": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "gridPos": { "h": 20, "w": 24, "x": 0, "y": 31 },
+              "id": 2,
+              "options": { "showTime": true, "sortOrder": "Descending", "enableLogDetails": true, "dedupStrategy": "none", "wrapLogMessage": true, "prettifyLogMessage": true },
+              "targets": [
+                {
+                  "expr": "{app=\"hx-auth\"} | json",
+                  "refId": "A"
+                }
+              ],
+              "title": "All hx-auth Logs (narrow time range for context)",
+              "description": "Shows ALL hx-auth logs in the selected time window. Narrow the time range around a match to see surrounding context.",
+              "type": "logs"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+          "id": 102,
+          "title": "Errors & Warnings Only",
+          "type": "row",
+          "panels": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "gridPos": { "h": 15, "w": 24, "x": 0, "y": 32 },
+              "id": 3,
+              "options": { "showTime": true, "sortOrder": "Descending", "enableLogDetails": true, "dedupStrategy": "none", "wrapLogMessage": true, "prettifyLogMessage": true },
+              "targets": [
+                {
+                  "expr": "{app=\"hx-auth\", level=~\"error|warning\"} |= `$keyword` | json",
+                  "refId": "A"
+                }
+              ],
+              "title": "Errors & Warnings matching keyword",
+              "type": "logs"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+          "id": 103,
+          "title": "Cross-Service Search (hx-auth + oauth + tenant-config)",
+          "type": "row",
+          "panels": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "gridPos": { "h": 20, "w": 24, "x": 0, "y": 33 },
+              "id": 4,
+              "options": { "showTime": true, "sortOrder": "Descending", "enableLogDetails": true, "dedupStrategy": "none", "wrapLogMessage": true, "prettifyLogMessage": true },
+              "targets": [
+                {
+                  "expr": "{app=~\"hx-auth|hx-tenant-config|hawcx-core-oauth\"} |= `$keyword` | json",
+                  "refId": "A"
+                }
+              ],
+              "title": "Cross-service logs matching keyword",
+              "description": "Search across hx-auth, hawcx-core-oauth, and hx-tenant-config.",
+              "type": "logs"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["debugging", "logs", "hx-auth"],
+      "templating": {
+        "list": [
+          {
+            "current": { "text": "", "value": "" },
+            "name": "keyword",
+            "type": "textbox",
+            "label": "Search Keyword"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "hx-auth Log Explorer",
+      "uid": "hx-auth-log-explorer",
+      "version": 1
+    }
   system-health.json: |
     {
       "annotations": { "list": [] },
