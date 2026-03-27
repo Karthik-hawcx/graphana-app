@@ -985,8 +985,8 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (route_name, dpop_present) (count_over_time({job=\"kong\", route!=\"unknown\"} | route_name != \"\" [$__interval]))",
-              "legendFormat": "{{route_name}} dpop={{dpop_present}}",
+              "expr": "sum by (route, dpop_present) (count_over_time({job=\"kong\", route!=\"unknown\"} [$__interval]))",
+              "legendFormat": "{{route}} dpop={{dpop_present}}",
               "refId": "A"
             }
           ],
@@ -1031,7 +1031,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (auth_type) (count_over_time({job=\"kong\", route!=\"unknown\"} | response_status >= 400 [$__interval]))",
+              "expr": "sum by (auth_type) (count_over_time({job=\"kong\", route!=\"unknown\", status=~\"4..|5..\"} [$__interval]))",
               "legendFormat": "{{auth_type}} (4xx/5xx)",
               "refId": "A"
             }
@@ -1180,7 +1180,7 @@ data:
       },
       "timepicker": {},
       "timezone": "browser",
-      "title": "Kong Auth Security",
+      "title": "Kong Analytics",
       "uid": "kong-auth-security",
       "version": 1
     }
